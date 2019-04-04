@@ -120,9 +120,26 @@ def preprocess_image(img_path, json_path=None):
     return crop, proc_param, img
 
 
-def main(img_path, json_path=None):
+def run_once(f):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            return f(*args, **kwargs)
+    wrapper.has_run = False
+    return wrapper
+
+
+@run_once
+def model_and_sess():
     sess = tf.Session()
     model = RunModel(config, sess=sess)
+
+    return sess, model
+
+
+def main(img_path, json_path=None):
+
+    sess, model = model_and_sess()
 
     input_img, proc_param, img = preprocess_image(img_path, json_path)
     # Add batch dimension: 1 x D x D x 3
